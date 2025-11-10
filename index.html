@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>.</title> <!-- hidden/neutral title -->
+  <title>.</title> <!-- hidden title -->
   <style>
     html, body {
       height: 100%;
@@ -13,6 +13,7 @@
       font-family: "Poppins", sans-serif;
     }
 
+    /* glowing light following cursor */
     #light {
       position: fixed;
       top: 0;
@@ -27,18 +28,36 @@
       opacity: 0;
       transition: opacity 2s ease;
     }
+
+    /* center heart */
+    #heart {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 150px;
+      height: 150px;
+      background: radial-gradient(circle at center, #ff3b3b 0%, #990000 80%);
+      clip-path: polygon(
+        50% 0%, 61% 15%, 75% 15%, 85% 25%, 90% 40%, 75% 60%, 50% 100%, 25% 60%, 10% 40%, 15% 25%, 25% 15%, 39% 15%
+      );
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0;
+      transition: transform 2s ease, opacity 2s ease;
+    }
   </style>
 </head>
 <body>
   <div id="light"></div>
+  <div id="heart"></div>
 
   <script>
     const light = document.getElementById("light");
+    const heart = document.getElementById("heart");
 
-    // fade in the glow after a short delay
+    // fade in cursor light
     setTimeout(() => light.style.opacity = 1, 2000);
 
-    // smooth lag follow
+    // smooth lag for light with breathing soul effect
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
     let currentX = targetX, currentY = targetY;
@@ -46,34 +65,68 @@
     document.addEventListener("mousemove", e => {
       targetX = e.clientX;
       targetY = e.clientY;
-      startAudio(); // start ambience on first move
+      startAudio(); // start ambient on first move
     });
 
     function animate() {
       currentX += (targetX - currentX) * 0.07;
       currentY += (targetY - currentY) * 0.07;
 
-      // soft breathing pulse
+      // breathing effect
       const scale = 1 + Math.sin(Date.now()/1500) * 0.05;
-      const opacity = 0.2 + Math.sin(Date.now()/1200) * 0.02 + 0.2;
+      const opacity = 0.2 + Math.sin(Date.now()/1200)*0.02 + 0.2;
 
       light.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
       light.style.opacity = opacity;
+
       requestAnimationFrame(animate);
     }
     animate();
 
-    // soft ambient wind + synth
+    // ambient cave wind + synth
     let audioStarted = false;
+    let ambientAudio;
     function startAudio() {
       if (audioStarted) return;
       audioStarted = true;
-      const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/07/13/audio_d642f99b59.mp3?filename=soft-wind-ambience-11141.mp3");
-      audio.loop = true;
-      audio.volume = 0.2;
-      audio.play().catch(() => {});
+      ambientAudio = new Audio("https://cdn.pixabay.com/download/audio/2022/07/13/audio_d642f99b59.mp3?filename=soft-wind-ambience-11141.mp3");
+      ambientAudio.loop = true;
+      ambientAudio.volume = 0;
+      ambientAudio.play().catch(()=>{});
+      // fade in
+      let vol = 0;
+      const fade = setInterval(()=>{
+        if(vol < 0.2){
+          vol += 0.01;
+          ambientAudio.volume = vol;
+        } else {
+          clearInterval(fade);
+        }
+      }, 200);
     }
+
+    // after 15 seconds, light drifts to center and heart appears
+    setTimeout(()=>{
+      targetX = window.innerWidth/2;
+      targetY = window.innerHeight/2;
+
+      // slow down ambient for suspense
+      let fadeOut = setInterval(()=>{
+        if(ambientAudio.volume > 0.05){
+          ambientAudio.volume -= 0.005;
+        } else {
+          clearInterval(fadeOut);
+        }
+      }, 200);
+
+      // heart pulse animation
+      heart.style.opacity = 1;
+      let scale = 0;
+      const pulse = setInterval(()=>{
+        scale = 1 + Math.sin(Date.now()/300) * 0.05;
+        heart.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      }, 16);
+    }, 15000);
   </script>
 </body>
 </html>
-
