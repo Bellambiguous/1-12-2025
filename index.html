@@ -1,1 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>.</title> <!-- hidden/neutral title -->
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1a1a1a 0%, #0a0a0a 100%);
+      font-family: "Poppins", sans-serif;
+    }
+
+    #light {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,200,0.25) 0%, transparent 70%);
+      mix-blend-mode: screen;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: opacity 2s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="light"></div>
+
+  <script>
+    const light = document.getElementById("light");
+
+    // fade in the glow after a short delay
+    setTimeout(() => light.style.opacity = 1, 2000);
+
+    // smooth lag follow
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let currentX = targetX, currentY = targetY;
+
+    document.addEventListener("mousemove", e => {
+      targetX = e.clientX;
+      targetY = e.clientY;
+      startAudio(); // start ambience on first move
+    });
+
+    function animate() {
+      currentX += (targetX - currentX) * 0.07;
+      currentY += (targetY - currentY) * 0.07;
+
+      // soft breathing pulse
+      const scale = 1 + Math.sin(Date.now()/1500) * 0.05;
+      const opacity = 0.2 + Math.sin(Date.now()/1200) * 0.02 + 0.2;
+
+      light.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
+      light.style.opacity = opacity;
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // soft ambient wind + synth
+    let audioStarted = false;
+    function startAudio() {
+      if (audioStarted) return;
+      audioStarted = true;
+      const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/07/13/audio_d642f99b59.mp3?filename=soft-wind-ambience-11141.mp3");
+      audio.loop = true;
+      audio.volume = 0.2;
+      audio.play().catch(() => {});
+    }
+  </script>
+</body>
+</html>
 
